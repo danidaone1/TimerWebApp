@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Single Timer App</title>
+  <style>
+    /* General Styles */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #000000; /* Pure black background */
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    /* Top Section: Total Time Learned and Export Button */
+    .top-section {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      text-align: left;
+    }
+
+    .top-section p {
+      font-size: 1.1rem;
+      margin: 5px 0;
+      color: #64ffda; /* Teal accent color */
+    }
+
+    .export-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #64ffda; /* Teal accent color */
+      color: #000000; /* Black text */
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .export-button:hover {
+      background-color: #88ffdf; /* Lighter teal on hover */
+    }
+
+    /* Navigation Slide Bar */
+    .nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 10px;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+      width: 400px; /* Fixed width for section bar */
+      justify-content: center;
+    }
+
+    .nav button {
+      background-color: transparent;
+      color: #ccd6f6; /* Light blue text */
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .nav button.selected {
+      background-color: #64ffda; /* Teal for selected button */
+      color: #000000; /* Black text */
+    }
+
+    .nav button:hover {
+      background-color: rgba(100, 255, 218, 0.2); /* Light teal on hover */
+    }
+
+    /* Timer Display */
+    .timer-display {
+      font-size: 4rem;
+      margin: 20px 0;
+      color: #ffffff; /* White for timer */
+      text-align: center;
+      width: 400px; /* Same width as section bar */
+    }
+
+    /* Control Buttons at Bottom */
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .controls button {
+      background-color: #64ffda; /* Teal accent color */
+      color: #000000; /* Black text */
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .controls button:hover {
+      background-color: #88ffdf; /* Lighter teal on hover */
+    }
+  </style>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Section: Total Time Learned -->
+  <div class="top-section">
+    <p>Total Time Learned: <span id="total-learned">00:00</span></p>
+  </div>
+
+  <!-- Export Button -->
+  <button class="export-button" onclick="exportData()">Export Data</button>
+
+  <!-- Navigation Slide Bar -->
+  <div class="nav">
+    <button onclick="switchMode('learning')" class="selected">Learning</button>
+    <button onclick="switchMode('break')">Break</button>
+    <button onclick="switchMode('reviewing')">Reviewing</button>
+  </div>
+
+  <!-- Timer Display -->
+  <div class="timer-display" id="timer-display">25:00:00</div>
+
+  <!-- Control Buttons at Bottom -->
+  <div class="controls">
+    <button onclick="startTimer()">Start</button>
+    <button onclick="stopTimer()">Stop</button>
+    <button onclick="resetTimer()">Reset</button>
+  </div>
+
+  <!-- Light Notification Sound -->
+  <audio id="timer-sound" src="https://assets.mixkit.co/active_storage/sfx/2474/2474-preview.mp3"></audio>
+
+  <script>
+    // Timer Variables
+    let currentMode = "learning"; // Default mode
+    let timerTime;
+    let timerInterval;
+    let totalLearnedMinutes = 0; // Total time learned in minutes
+    let totalBreakMinutes = 0; // Total break time in minutes
+    let totalReviewingMinutes = 0; // Total reviewing time in minutes
+
+    // Mode Settings
+    const modeSettings = {
+      learning: 25 * 60, // 25 minutes
+      break: 5 * 60, // 5 minutes
+      reviewing: 0, // Starts from 0
+    };
+
+    // Switch Mode Function
+    function switchMode(mode) {
+      currentMode = mode;
+      resetTimer(); // Reset timer when switching modes
+      document.querySelectorAll(".nav button").forEach(button => button.classList.remove("selected"));
+      document.querySelector(`.nav button:nth-child(${mode === "learning" ? 1 : mode === "break" ? 2 : 3})`).classList.add("selected");
+      updateTimerDisplay();
+    }
+
+    // Start Timer Function
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (currentMode === "reviewing") {
+          timerTime++; // Increment for reviewing mode
+          totalReviewingMinutes++;
+        } else {
+          timerTime--; // Decrement for learning and break modes
+          if (timerTime < 0) {
+            clearInterval(timerInterval);
+            document.getElementById("timer-sound").play(); // Play light notification sound
+            if (currentMode === "learning") {
+              totalLearnedMinutes += 25; // Add 25 minutes to total learned time
+            } else if (currentMode === "break") {
+              totalBreakMinutes += 5; // Add 5 minutes to total break time
+            }
+            alert(`${currentMode.charAt(0).toUpperCase() + currentMode.slice(1)} time is over!`);
+            return;
+          }
+        }
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    // Stop Timer Function
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    // Reset Timer Function
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerTime = modeSettings[currentMode];
+      updateTimerDisplay();
+    }
+
+    // Update Timer Display Function
+    function updateTimerDisplay() {
+      const hours = Math.floor(timerTime / 3600);
+      const minutes = Math.floor((timerTime % 3600) / 60);
+      const seconds = timerTime % 60;
+      document.getElementById("timer-display").innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // Update Total Time Learned Function
+    function updateTotalLearned() {
+      const hours = Math.floor(totalLearnedMinutes / 60);
+      const minutes = totalLearnedMinutes % 60;
+      document.getElementById("total-learned").innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+
+    // Export Data Function
+    function exportData() {
+      const date = new Date();
+      const formattedDate = `${date.getDate()}${getOrdinalSuffix(date.getDate())} ${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+      const fileName = `${date.getDate()}-${date.toLocaleString('default', { month: 'long' })}-${date.getFullYear()}.txt`;
+      const data = `Date: ${formattedDate}\nTime Learned: ${formatTime(totalLearnedMinutes)}\nTime Took Break: ${formatTime(totalBreakMinutes)}\nTime Reviewing: ${formatTime(totalReviewingMinutes)}`;
+      const blob = new Blob([data], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Helper function to format time (HH:MM:SS)
+    function formatTime(minutes) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:00`;
+    }
+
+    // Helper function to get ordinal suffix (e.g., 1st, 2nd, 3rd)
+    function getOrdinalSuffix(day) {
+      if (day > 3 && day < 21) return "th"; // 11th, 12th, 13th, etc.
+      switch (day % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    }
+
+    // Initialize Timer
+    resetTimer();
+  </script>
+</body>
+</html>
