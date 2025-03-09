@@ -10,7 +10,9 @@
       margin: 0;
       padding: 0;
       font-family: 'Poppins', sans-serif;
-      background-color: #000000; /* Pure black background */
+      background-image: url('https://4kwallpapers.com/images/walls/thumbs_3t/13632.jpg');
+      background-size: cover;
+      background-position: center;
       color: #ffffff;
       display: flex;
       justify-content: center;
@@ -19,7 +21,7 @@
       flex-direction: column;
     }
 
-    /* Top Section: Total Time Learned and Export Button */
+    /* Top Section: Total Time Learned, Break, and Reviewing */
     .top-section {
       position: absolute;
       top: 20px;
@@ -37,8 +39,8 @@
       position: absolute;
       top: 20px;
       right: 20px;
-      background-color: #64ffda; /* Teal accent color */
-      color: #000000; /* Black text */
+      background-color: #6a5acd; /* Slate blue */
+      color: #ffffff; /* White text */
       border: none;
       padding: 10px 20px;
       border-radius: 5px;
@@ -48,7 +50,7 @@
     }
 
     .export-button:hover {
-      background-color: #88ffdf; /* Lighter teal on hover */
+      background-color: #7b68ee; /* Lighter slate blue on hover */
     }
 
     /* Navigation Slide Bar */
@@ -58,14 +60,14 @@
       margin-bottom: 20px;
       padding: 10px;
       border-radius: 10px;
-      background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+      background-color: rgba(106, 90, 205, 0.5); /* Semi-transparent slate blue */
       width: 400px; /* Fixed width for section bar */
       justify-content: center;
     }
 
     .nav button {
       background-color: transparent;
-      color: #ccd6f6; /* Light blue text */
+      color: #e6e6fa; /* Lavender text */
       border: none;
       padding: 10px 20px;
       border-radius: 5px;
@@ -75,12 +77,12 @@
     }
 
     .nav button.selected {
-      background-color: #64ffda; /* Teal for selected button */
-      color: #000000; /* Black text */
+      background-color: #7b68ee; /* Lighter slate blue for selected button */
+      color: #ffffff; /* White text */
     }
 
     .nav button:hover {
-      background-color: rgba(100, 255, 218, 0.2); /* Light teal on hover */
+      background-color: rgba(123, 104, 238, 0.7); /* Lighter slate blue on hover */
     }
 
     /* Timer Display */
@@ -101,8 +103,8 @@
     }
 
     .controls button {
-      background-color: #64ffda; /* Teal accent color */
-      color: #000000; /* Black text */
+      background-color: #6a5acd; /* Slate blue */
+      color: #ffffff; /* White text */
       border: none;
       padding: 10px 20px;
       border-radius: 5px;
@@ -112,16 +114,18 @@
     }
 
     .controls button:hover {
-      background-color: #88ffdf; /* Lighter teal on hover */
+      background-color: #7b68ee; /* Lighter slate blue on hover */
     }
   </style>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Top Section: Total Time Learned -->
+  <!-- Top Section: Total Time Learned, Break, and Reviewing -->
   <div class="top-section">
     <p>Total Time Learned: <span id="total-learned">00:00</span></p>
+    <p>Total Break Time: <span id="total-break">00:00</span></p>
+    <p>Total Reviewing Time: <span id="total-reviewing">00:00</span></p>
   </div>
 
   <!-- Export Button -->
@@ -143,9 +147,6 @@
     <button onclick="stopTimer()">Stop</button>
     <button onclick="resetTimer()">Reset</button>
   </div>
-
-  <!-- Light Notification Sound -->
-  <audio id="timer-sound" src="https://assets.mixkit.co/active_storage/sfx/2474/2474-preview.mp3"></audio>
 
   <script>
     // Timer Variables
@@ -179,17 +180,19 @@
         if (currentMode === "reviewing") {
           timerTime++; // Increment for reviewing mode
           totalReviewingMinutes++;
+          updateTotalReviewing();
         } else {
           timerTime--; // Decrement for learning and break modes
           if (timerTime < 0) {
             clearInterval(timerInterval);
-            document.getElementById("timer-sound").play(); // Play light notification sound
             if (currentMode === "learning") {
               totalLearnedMinutes += 25; // Add 25 minutes to total learned time
+              updateTotalLearned();
             } else if (currentMode === "break") {
               totalBreakMinutes += 5; // Add 5 minutes to total break time
+              updateTotalBreak();
             }
-            alert(`${currentMode.charAt(0).toUpperCase() + currentMode.slice(1)} time is over!`);
+            resetTimer(); // Reset the timer after completion
             return;
           }
         }
@@ -222,6 +225,20 @@
       const hours = Math.floor(totalLearnedMinutes / 60);
       const minutes = totalLearnedMinutes % 60;
       document.getElementById("total-learned").innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+
+    // Update Total Break Time Function
+    function updateTotalBreak() {
+      const hours = Math.floor(totalBreakMinutes / 60);
+      const minutes = totalBreakMinutes % 60;
+      document.getElementById("total-break").innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+
+    // Update Total Reviewing Time Function
+    function updateTotalReviewing() {
+      const hours = Math.floor(totalReviewingMinutes / 60);
+      const minutes = totalReviewingMinutes % 60;
+      document.getElementById("total-reviewing").innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     }
 
     // Export Data Function
